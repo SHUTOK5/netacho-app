@@ -1,0 +1,984 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#1a2744">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="今日のネタ帳">
+<meta name="description" content="営業マンのための雑談仕込みツール。今日の雑談、もう困らない。">
+<title>今日のネタ帳</title>
+<style>
+  :root {
+    --navy: #1a2744;
+    --navy-mid: #253461;
+    --navy-light: #3a4f82;
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+    --accent-mid: #bfdbfe;
+    --gold: #f59e0b;
+    --gold-light: #fffbeb;
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --bg: #f8fafc;
+    --bg-card: #ffffff;
+    --border: #e2e8f0;
+    --border-light: #f1f5f9;
+    --success: #059669;
+    --success-light: #ecfdf5;
+    --radius-sm: 10px;
+    --radius-md: 14px;
+    --radius-lg: 20px;
+    --radius-xl: 28px;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.05);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.1), 0 4px 12px rgba(0,0,0,0.06);
+    --font: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--text-primary);
+    min-height: 100vh;
+    max-width: 430px;
+    margin: 0 auto;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* ===== HEADER ===== */
+  .app-header {
+    background: var(--navy);
+    padding: 52px 20px 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .app-header::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -40px;
+    width: 200px; height: 200px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.04);
+  }
+  .app-header::after {
+    content: '';
+    position: absolute;
+    bottom: -30px; left: -20px;
+    width: 120px; height: 120px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.03);
+  }
+  .header-inner { position: relative; z-index: 1; }
+  .app-name {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.5);
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+  .app-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+    margin-bottom: 2px;
+  }
+  .app-sub {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    letter-spacing: 0.02em;
+  }
+
+  /* ===== TABS ===== */
+  .tab-bar {
+    display: flex;
+    background: var(--navy);
+    padding: 0 20px 16px;
+    gap: 4px;
+  }
+  .tab-btn {
+    flex: 1;
+    padding: 8px 4px;
+    border: none;
+    border-radius: 8px;
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: transparent;
+    color: rgba(255,255,255,0.4);
+  }
+  .tab-btn.active {
+    background: rgba(255,255,255,0.12);
+    color: #fff;
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; padding: 0 0 100px; }
+  .screen.active { display: block; }
+
+  /* ===== DATE STRIP ===== */
+  .date-strip {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px 12px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .date-nav-btn {
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    -webkit-user-select: none; user-select: none;
+  }
+  .date-nav-btn:active { background: var(--accent-light); border-color: var(--accent-mid); transform: scale(0.95); }
+  .date-center { text-align: center; }
+  .date-label {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    letter-spacing: -0.02em;
+  }
+  .date-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 1px;
+  }
+  .today-badge {
+    display: inline-block;
+    background: var(--accent-light);
+    color: var(--accent);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-top: 3px;
+    letter-spacing: 0.04em;
+  }
+
+  /* ===== MAIN CARD ===== */
+  .main-card {
+    margin: 16px 16px 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  .card-top {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-mid) 100%);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-top::after {
+    content: '';
+    position: absolute;
+    top: -20px; right: -20px;
+    width: 100px; height: 100px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.05);
+  }
+  .category-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    margin-bottom: 10px;
+    letter-spacing: 0.04em;
+  }
+  .cat-kinenbi { background: rgba(245,158,11,0.2); color: #fcd34d; }
+  .cat-rekishi { background: rgba(139,92,246,0.2); color: #c4b5fd; }
+  .cat-zatugaku { background: rgba(20,184,166,0.2); color: #5eead4; }
+  .cat-news { background: rgba(59,130,246,0.2); color: #93c5fd; }
+  .card-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.35;
+    letter-spacing: -0.02em;
+  }
+  .card-body { padding: 16px 20px; }
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .fact-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin-bottom: 16px;
+  }
+  .summary-box {
+    background: var(--bg);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    margin-bottom: 0;
+    border-left: 3px solid var(--accent);
+  }
+  .summary-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+  }
+
+  /* ===== SALES TALK BOX ===== */
+  .sales-section {
+    margin: 12px 16px 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  .sales-header {
+    background: linear-gradient(135deg, #1e3a5f 0%, #1a4f8a 100%);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .sales-header-left { display: flex; align-items: center; gap: 8px; }
+  .sales-icon {
+    width: 28px; height: 28px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+  }
+  .sales-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.04em;
+  }
+  .sales-sublabel {
+    font-size: 10px;
+    color: rgba(255,255,255,0.55);
+  }
+  .copy-btn {
+    padding: 6px 12px;
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: all 0.15s;
+  }
+  .copy-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.25); }
+  .copy-btn.copied { background: rgba(5,150,105,0.3); border-color: rgba(52,211,153,0.4); }
+  .sales-body {
+    padding: 16px 18px;
+  }
+  .sales-talk-text {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--text-primary);
+    font-weight: 400;
+  }
+  .speech-bubble-mark {
+    display: inline-block;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+    font-style: italic;
+  }
+
+  /* ===== ACTION BUTTONS ===== */
+  .action-row {
+    margin: 12px 16px 0;
+    display: flex;
+    gap: 10px;
+  }
+  .fav-btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--border);
+    background: var(--bg-card);
+    font-family: var(--font);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    transition: all 0.15s;
+    box-shadow: var(--shadow-sm);
+  }
+  .fav-btn:active { transform: scale(0.97); }
+  .fav-btn.saved {
+    background: #fff7ed;
+    border-color: #fed7aa;
+    color: #c2410c;
+  }
+  .fav-icon { font-size: 16px; }
+
+  /* ===== TOMORROW PREVIEW ===== */
+  .tomorrow-card {
+    margin: 12px 16px 0;
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+  }
+  .tomorrow-icon-wrap {
+    width: 36px; height: 36px;
+    background: var(--border-light);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+  .tomorrow-label {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 3px;
+  }
+  .tomorrow-title {
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  /* ===== DIVIDER ===== */
+  .section-divider {
+    height: 1px;
+    background: var(--border-light);
+    margin: 0 16px;
+  }
+
+  /* ===== FAVORITES SCREEN ===== */
+  .fav-empty {
+    text-align: center;
+    padding: 60px 32px;
+    color: var(--text-muted);
+  }
+  .fav-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.4; }
+  .fav-empty-text { font-size: 15px; line-height: 1.6; }
+  .fav-list { padding: 12px 16px; }
+  .fav-item {
+    background: var(--bg-card);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+    overflow: hidden;
+  }
+  .fav-item:active { transform: scale(0.99); }
+  .fav-item-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+  .fav-item-date {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+  }
+  .fav-item-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 6px;
+  }
+  .fav-item-summary {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .fav-delete-btn {
+    flex-shrink: 0;
+    width: 28px; height: 28px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .fav-delete-btn:active { background: #fef2f2; border-color: #fecaca; color: #dc2626; }
+
+  /* ===== TOAST ===== */
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--navy);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 24px;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0;
+    transition: all 0.3s;
+    pointer-events: none;
+    z-index: 1000;
+    white-space: nowrap;
+    box-shadow: var(--shadow-lg);
+  }
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ===== BOTTOM NAV ===== */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: 430px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(12px);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding: 8px 0 20px;
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 6px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: var(--font);
+    transition: all 0.15s;
+  }
+  .nav-icon { font-size: 20px; }
+  .nav-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+  }
+  .nav-btn.active .nav-label { color: var(--accent); }
+  .nav-btn.active .nav-icon { transform: scale(1.1); }
+
+  /* ===== DETAIL MODAL ===== */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal-sheet {
+    width: 100%;
+    max-width: 430px;
+    margin: 0 auto;
+    background: var(--bg-card);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding: 12px 20px 40px;
+    max-height: 85vh;
+    overflow-y: auto;
+  }
+  .modal-handle {
+    width: 36px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .modal-close-btn {
+    position: absolute;
+    top: 16px; right: 20px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    cursor: pointer;
+    font-size: 16px;
+    display: flex; align-items: center; justify-content: center;
+    color: var(--text-secondary);
+  }
+
+  /* ===== SCREEN HEADER ===== */
+  .screen-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border-light);
+    background: var(--bg-card);
+  }
+  .screen-header-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+  .screen-header-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+
+  .fav-count-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="app-header">
+  <div class="header-inner">
+    <div class="app-name">1日1雑学</div>
+    <div class="app-title">今日のネタ帳</div>
+    <div class="app-sub">商談前、30秒の仕込み</div>
+  </div>
+</div>
+
+<!-- TABS -->
+<div class="tab-bar" id="tabBar">
+  <button class="tab-btn active" onclick="switchTab('home')">📋 今日のネタ</button>
+  <button class="tab-btn" onclick="switchTab('favorites')">⭐ ストック</button>
+</div>
+
+<!-- HOME SCREEN -->
+<div class="screen active" id="screen-home">
+
+  <!-- DATE STRIP -->
+  <div class="date-strip">
+    <button class="date-nav-btn" onclick="changeDay(-1)">‹</button>
+    <div class="date-center">
+      <div class="date-label" id="displayDate">—</div>
+      <div class="date-sub" id="displayDateSub">—</div>
+      <div id="todayBadgeWrap"></div>
+    </div>
+    <button class="date-nav-btn" onclick="changeDay(1)">›</button>
+  </div>
+
+  <!-- MAIN CARD -->
+  <div class="main-card" id="mainCard">
+    <div class="card-top">
+      <div class="category-badge" id="categoryBadge">—</div>
+      <div class="card-title" id="cardTitle">読み込み中...</div>
+    </div>
+    <div class="card-body">
+      <div class="section-label">今日のネタ</div>
+      <div class="fact-text" id="factText">—</div>
+      <div class="summary-box">
+        <div class="section-label">一言まとめ</div>
+        <div class="summary-text" id="summaryText">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SALES TALK BOX -->
+  <div class="sales-section">
+    <div class="sales-header">
+      <div class="sales-header-left">
+        <div class="sales-icon">💬</div>
+        <div>
+          <div class="sales-label">そのまま使える営業トーク</div>
+          <div class="sales-sublabel">コピーしてすぐ使えます</div>
+        </div>
+      </div>
+      <button class="copy-btn" id="copyBtn" onclick="copyTalk()">コピー</button>
+    </div>
+    <div class="sales-body">
+      <div class="speech-bubble-mark">「　…　」</div>
+      <div class="sales-talk-text" id="salesTalkText">—</div>
+    </div>
+  </div>
+
+  <!-- ACTION ROW -->
+  <div class="action-row">
+    <button class="fav-btn" id="favBtn" onclick="toggleFavorite()">
+      <span class="fav-icon">☆</span>
+      <span id="favBtnLabel">ストックする</span>
+    </button>
+  </div>
+
+  <!-- TOMORROW PREVIEW -->
+  <div class="tomorrow-card">
+    <div class="tomorrow-icon-wrap">🔮</div>
+    <div>
+      <div class="tomorrow-label">明日のネタ予告</div>
+      <div class="tomorrow-title" id="tomorrowPreview">—</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAVORITES SCREEN -->
+<div class="screen" id="screen-favorites">
+  <div class="screen-header">
+    <div class="screen-header-title">ストックしたネタ <span id="favCountBadge" class="fav-count-badge" style="display:none">0</span></div>
+    <div class="screen-header-sub">気になったネタを保存して、いつでも振り返れます</div>
+  </div>
+  <div id="favList" class="fav-list"></div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-home" onclick="switchTab('home')">
+    <span class="nav-icon">📋</span>
+    <span class="nav-label">今日のネタ</span>
+  </button>
+  <button class="nav-btn" id="nav-favorites" onclick="switchTab('favorites')">
+    <span class="nav-icon">⭐</span>
+    <span class="nav-label">ストック</span>
+  </button>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="category-badge" id="modalCat" style="margin-bottom:10px"></div>
+    <div style="font-size:12px;color:var(--text-muted);margin-bottom:6px" id="modalDate"></div>
+    <div style="font-size:19px;font-weight:700;line-height:1.35;letter-spacing:-0.02em;margin-bottom:14px;color:var(--text-primary)" id="modalTitle"></div>
+    <div class="section-label">今日のネタ</div>
+    <div style="font-size:15px;line-height:1.7;color:var(--text-primary);margin-bottom:14px" id="modalFact"></div>
+    <div class="summary-box" style="margin-bottom:14px">
+      <div class="section-label">一言まとめ</div>
+      <div class="summary-text" id="modalSummary"></div>
+    </div>
+    <div style="background:var(--navy);border-radius:var(--radius-md);padding:14px 16px;">
+      <div style="font-size:11px;font-weight:700;color:rgba(255,255,255,0.5);letter-spacing:0.08em;margin-bottom:8px">そのまま使える営業トーク</div>
+      <div style="font-size:15px;line-height:1.7;color:#ffffff" id="modalTalk"></div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 60日分のサンプルデータ =====
+const DATA = [
+  {date:"01-06",title:"色鉛筆の日にちなんだ雑学",category:"記念日",fact:"1月6日は色鉛筆の日です。1色ずつ丁寧に作られる色鉛筆は、実は職人技術の結晶で、高品質なものは削るだけでも芸術的な香りがするといわれています。",summary:"今日は色鉛筆の日。ものづくりへのこだわりを話題にしやすい日です。",salesTalk:"今日、色鉛筆の日らしいんですが、こだわって作られたものって、使うだけで気分が上がりますよね。仕事道具も同じかなと思いまして。",tomorrowPreview:"明日は七草がゆにまつわる話題"},
+  {date:"01-07",title:"七草がゆにまつわる雑学",category:"雑学",fact:"1月7日に食べる七草がゆは、春の七草を入れたお粥で、お正月のごちそう疲れした胃を休ませるための先人の知恵です。セリ・ナズナ・ゴギョウなど、それぞれに意味があります。",summary:"今日は七草がゆの日。先人の健康への気遣いが感じられます。",salesTalk:"今日は七草がゆの日なんですよね。お正月の疲れをリセットする知恵って素敵だと思いませんか。新年の仕切り直し、僕も見習いたいと思っています。",tomorrowPreview:"明日は勝負の縁起にまつわる話題"},
+  {date:"01-15",title:"小正月・どんど焼きにちなんだ話",category:"記念日",fact:"1月15日は小正月とも呼ばれ、各地でどんど焼きが行われます。お正月飾りを燃やし、その煙とともに一年の無病息災を願う伝統的な行事です。",summary:"今日は小正月。日本の伝統行事で新年の無病息災を願う日です。",salesTalk:"今日、どんど焼きの話を見たんですが、煙に乗せて願いを送るって、なんかロマンありますよね。新年の目標、改めて思い出しました。",tomorrowPreview:"明日はコーヒーにまつわる雑学"},
+  {date:"01-20",title:"大寒にちなんだ雑学",category:"雑学",fact:"大寒は一年で最も寒さが厳しい時期とされ、この時期に作られる味噌や醤油、日本酒は「寒仕込み」と呼ばれ、雑菌が少なく品質が高まるといわれています。",summary:"今日は大寒。寒さを逆手に取る日本の発酵文化の知恵が光る日です。",salesTalk:"今日は大寒で、寒い時期こそ美味しいものが育つって話を聞きました。大変な時期が実は力になる、仕事も似てるかもしれませんよね。",tomorrowPreview:"明日は手紙の日にちなんだ話題"},
+  {date:"02-03",title:"節分にちなんだ雑学",category:"記念日",fact:"2月3日の節分では豆まきをしますが、年の数だけ豆を食べる風習があります。実は恵方巻きを丸かじりする文化は大阪発祥で、全国に広まったのは1990年代以降とかなり最近です。",summary:"今日は節分。豆まきと恵方巻きの起源、話のネタにちょうどいい日です。",salesTalk:"今日、節分ですね。恵方巻きって実は大阪発祥で、全国に広まったのここ30年らしいんですよ。文化って面白いですよね、気づいたら当たり前になってる。",tomorrowPreview:"明日は立春にちなんだ話題"},
+  {date:"02-04",title:"立春にちなんだ雑学",category:"雑学",fact:"2月4日頃の立春は、暦の上では春の始まりです。この日から「春一番」が吹き始め、農家では種まきの準備をスタートする節目の日とされてきました。",summary:"今日は立春。暦の上では春のスタート、気持ちを切り替えやすい日です。",salesTalk:"今日、立春なんですよね。暦の上では春スタートで、なんか気持ちが明るくなりますよね。季節の節目って、仕切り直しのチャンスな気がしています。",tomorrowPreview:"明日はチョコレートにまつわる雑学"},
+  {date:"02-14",title:"バレンタインデーの本当の意味",category:"雑学",fact:"2月14日のバレンタインデーは、ローマ時代の聖バレンタインに由来します。チョコレートを贈る文化は日本独自で、1950年代に製菓会社のキャンペーンから広まったといわれています。",summary:"今日はバレンタインデー。日本独自の贈り物文化、起源を話すと盛り上がります。",salesTalk:"今日、バレンタインデーって日本ではチョコを贈りますが、実はこれ日本独自の文化なんですよ。マーケティングが文化を作ったって考えると面白いですよね。",tomorrowPreview:"明日は雨水にちなんだ話題"},
+  {date:"02-22",title:"猫の日にちなんだ雑学",category:"記念日",fact:"2月22日は「ニャン・ニャン・ニャン」の語呂合わせから猫の日とされています。日本では現在、犬よりも猫の飼育頭数が多く、ペット市場でも猫関連商品が急成長しています。",summary:"今日は猫の日。ペット市場や癒し文化の話題が盛り上がりやすい日です。",salesTalk:"今日、猫の日らしいんですが、最近は猫の飼育頭数が犬を超えたって知ってましたか？癒し需要の高まりって、いろんなビジネスにも繋がってますよね。",tomorrowPreview:"明日はふるさとにまつわる話題"},
+  {date:"03-03",title:"ひなまつりにちなんだ雑学",category:"記念日",fact:"3月3日のひなまつりは、平安時代の「流し雛」が起源といわれています。人形に厄を移し川に流した風習が、室内で飾る形へと発展しました。現在では約1500億円規模の市場となっています。",summary:"今日はひなまつり。日本の季節行事の歴史と市場規模を話すと面白い話題です。",salesTalk:"今日、ひなまつりなんですが、実は平安時代の川に流す行事が起源って知ってましたか？昔の文化がここまで大きなビジネスになってるのって面白いですよね。",tomorrowPreview:"明日はミシンにまつわる雑学"},
+  {date:"03-08",title:"国際女性デーにちなんだ話",category:"歴史",fact:"3月8日の国際女性デーは、1908年にニューヨークで女性労働者たちが権利を求めてデモを行ったことが起源の一つとされています。イタリアではこの日に黄色いミモザの花を贈る文化があります。",summary:"今日は国際女性デー。多様性や社会変化の話題として使いやすい日です。",salesTalk:"今日、国際女性デーなんですよね。働き方や価値観の多様化って、本当にここ10年で大きく変わりましたよね。うちのお客さんでも変化を感じることが多くて。",tomorrowPreview:"明日は記録にまつわる雑学"},
+  {date:"03-14",title:"ホワイトデーの意外な由来",category:"雑学",fact:"3月14日のホワイトデーは、実は日本生まれの文化です。1978年に福岡の菓子メーカーが始めたとされ、その後全国に広まりました。バレンタインへのお返し文化は日本とアジア一部のみの習慣です。",summary:"今日はホワイトデー。実は日本発祥の文化という話で会話が盛り上がります。",salesTalk:"今日、ホワイトデーって実は日本発祥の文化で、福岡の菓子屋さんが始めたって知ってましたか？日本人って独自にアレンジするのが上手いですよね。",tomorrowPreview:"明日は春のお彼岸にちなんだ話題"},
+  {date:"03-20",title:"春分の日にちなんだ雑学",category:"記念日",fact:"3月20日頃の春分の日は、昼と夜の長さがほぼ等しくなる日です。お墓参りをする「お彼岸」の中日でもあり、「暑さ寒さも彼岸まで」という言葉通り、本格的な春の訪れを告げる節目です。",summary:"今日は春分の日。季節の変わり目と日本の習慣を話題にしやすい日です。",salesTalk:"今日、春分の日で昼と夜の長さがほぼ同じになるんですよ。『暑さ寒さも彼岸まで』って言葉、改めていいなと思って。季節の節目に気分も切り替えたいですよね。",tomorrowPreview:"明日は放送にまつわる雑学"},
+  {date:"04-01",title:"エイプリルフールの起源",category:"雑学",fact:"4月1日のエイプリルフールは、フランスが太陽暦に移行した際に旧暦の新年（4月1日）を忘れていた人々を「4月馬鹿」と呼んだのが起源の一説といわれています。",summary:"今日はエイプリルフール。起源の話で気軽に話題が作れる日です。",salesTalk:"今日、エイプリルフールなんですが、起源がフランスの暦の切り替えっていう説があって面白いんですよね。情報が広まるスピードって昔も今も変わらないな、なんて思って。",tomorrowPreview:"明日は春の豆知識にちなんだ話題"},
+  {date:"04-10",title:"駅弁の日にちなんだ雑学",category:"記念日",fact:"4月10日は駅弁の日とされています。日本初の駅弁は1885年に栃木県の宇都宮駅で販売されたおにぎりとたくあんだったといわれており、今では全国で約3000種類以上の駅弁が存在しています。",summary:"今日は駅弁の日。旅と食の楽しさを話題にしやすい日です。",salesTalk:"今日、駅弁の日らしいんですけど、出張で移動の多い時って、その土地の駅弁ちょっとテンション上がりませんか？ご当地もの、何かお好きですか？",tomorrowPreview:"明日は文具にまつわる雑学"},
+  {date:"04-18",title:"発明の日にちなんだ雑学",category:"記念日",fact:"4月18日は発明の日です。1885年のこの日に日本で専利条例（特許制度の前身）が公布されました。現在日本の特許出願数は年間約30万件以上あり、世界でも上位の発明大国です。",summary:"今日は発明の日。ものづくりやイノベーションを話題にしやすい日です。",salesTalk:"今日、発明の日なんですよ。日本って特許出願数が世界トップクラスなんですよね。こだわりを形にし続ける文化、すごいと思いませんか。",tomorrowPreview:"明日は地図にまつわる雑学"},
+  {date:"04-23",title:"子ども読書の日にちなんだ話",category:"記念日",fact:"4月23日は子ども読書の日です。同じ日はユネスコが定めた「世界本の日」でもあり、スペインのサン・ジョルディ祭にちなんで本とバラを贈り合う習慣が世界に広まっています。",summary:"今日は本の日。読書や学びの習慣が話題にしやすい日です。",salesTalk:"今日、世界本の日でもあって、スペインでは本とバラを贈り合うらしいんですよ。お客様は最近、何か読んだ本ありますか？おすすめあったら教えてほしいです。",tomorrowPreview:"明日は植物にまつわる雑学"},
+  {date:"05-05",title:"こどもの日の鯉のぼりの由来",category:"記念日",fact:"5月5日のこどもの日に飾る鯉のぼりは、中国の「鯉が滝を登ると龍になる」という故事から来ています。男の子の強くたくましい成長を願う親の気持ちが込められています。",summary:"今日はこどもの日。鯉のぼりの由来を話すと子育て世代に響く話題です。",salesTalk:"今日、こどもの日なんですが、鯉のぼりって中国の鯉が滝を登って龍になる故事が由来なんですよ。子供の成長を願う親心って、時代を超えますよね。",tomorrowPreview:"明日は立夏にちなんだ話題"},
+  {date:"05-11",title:"ご当地グルメの日にちなんだ雑学",category:"雑学",fact:"日本のご当地グルメ文化は、2007年前後のB-1グランプリブームで一気に全国区へ。富士宮焼きそばや厚木シロコロホルモンなど、地域密着の食文化が観光資源に変わった成功事例として注目されています。",summary:"今日はご当地グルメを話題に。地域文化と産業の話が広げやすい日です。",salesTalk:"B-1グランプリって知ってますか？地元の食文化をブランド化して観光にまで繋げた取り組みで。地域の強みって、磨けば全国区になれるんですよね。",tomorrowPreview:"明日は母の日にちなんだ話題"},
+  {date:"05-12",title:"ナイチンゲールにちなんだ話",category:"歴史",fact:"5月12日はナイチンゲールの誕生日にちなみ、国際看護師の日とされています。フローレンス・ナイチンゲールは近代看護学の祖であり、統計学をいち早くグラフ化して活用した先進的なデータ活用者でもありました。",summary:"今日は看護師の日。ナイチンゲールのデータ活用の先見性は仕事にも通じます。",salesTalk:"ナイチンゲールって看護師のイメージですが、実は統計グラフで医療改善を訴えた、データ分析の先駆者でもあるんですよ。伝え方一つで世界が変わるって、仕事でも同じですよね。",tomorrowPreview:"明日は缶詰にまつわる雑学"},
+  {date:"05-20",title:"世界ミツバチの日にちなんだ話",category:"記念日",fact:"5月20日は世界ミツバチの日です。ミツバチは世界の食料の約3分の1の生産に関わる花粉媒介者であり、もしミツバチが絶滅すると、人間の食料供給に深刻な影響が出るといわれています。",summary:"今日はミツバチの日。環境と食・産業の繋がりを話すのに使いやすい日です。",salesTalk:"今日、世界ミツバチの日で、実はミツバチが食料の3分の1を支えてるってご存知ですか？見えないところで繋がってるって、サプライチェーンの話みたいで面白いなって思って。",tomorrowPreview:"明日は小満にちなんだ話題"},
+  {date:"05-29",title:"こんにゃくの日にちなんだ雑学",category:"記念日",fact:"5月29日は「こ（5）に（2）ゃく（9）」の語呂合わせからこんにゃくの日とされています。こんにゃくは食物繊維が豊富でカロリーほぼゼロの健康食材として、近年海外でも「ゼロカロリー食品」として注目されています。",summary:"今日はこんにゃくの日。ヘルシー食材として海外でも人気が高まっています。",salesTalk:"こんにゃくって、今、海外で『ゼロカロリーフード』として注目されてるって知ってましたか？日本の食文化が世界で評価されてる話、なんか誇らしいですよね。",tomorrowPreview:"明日は横浜にまつわる雑学"},
+  {date:"06-01",title:"気象記念日にちなんだ雑学",category:"記念日",fact:"6月1日は気象記念日です。1875年のこの日、東京気象台が設立され、日本初の気象観測が始まりました。現在の天気予報の精度は技術の進化で飛躍的に向上し、3日後の予報の的中率は約80%といわれています。",summary:"今日は気象記念日。天気予報の精度向上は技術進化の象徴的な話題です。",salesTalk:"天気予報って今、3日後の精度が80%を超えるらしいんですよ。データと技術の積み重ねって本当に侮れないですよね。仕事でも根拠のある提案って大事だなと改めて思って。",tomorrowPreview:"明日は横浜開港記念にちなんだ話題"},
+  {date:"06-10",title:"時の記念日にちなんだ雑学",category:"記念日",fact:"6月10日は時の記念日です。671年のこの日、天智天皇が水時計で時を刻んだことが日本書紀に記されており、時間を大切にする心を養う日として1920年に制定されました。",summary:"今日は時の記念日。時間の使い方や生産性を話題にしやすい日です。",salesTalk:"今日、時の記念日なんですよ。奈良時代から時間を大切にする文化があったって面白いですよね。限られた時間の使い方って、今も変わらない大事なテーマですよね。",tomorrowPreview:"明日はカエルにまつわる雑学"},
+  {date:"06-16",title:"和菓子の日にちなんだ雑学",category:"記念日",fact:"6月16日は和菓子の日です。平安時代、疫病や災難を祓うために嘉祥という行事で16個の菓子や餅を神前に供えたことが起源とされています。和菓子は四季の自然を表現する日本の伝統工芸とも呼ばれています。",summary:"今日は和菓子の日。日本の四季と職人文化を話題にしやすい日です。",salesTalk:"和菓子って、季節を食で表現する芸術って感じがしますよね。今日、和菓子の日らしいんですが、最近食べた和菓子ってありますか？老舗のものって特別な気がして。",tomorrowPreview:"明日は父の日にちなんだ話題"},
+  {date:"06-21",title:"夏至にちなんだ雑学",category:"雑学",fact:"6月21日頃の夏至は、一年で最も昼が長い日です。北欧では夏至を盛大に祝うミッドサマーというお祭りがあり、白夜の中で踊り明かします。日本では夏至にタコを食べる地域もあります。",summary:"今日は夏至。一年で最も昼が長い日、世界の習慣の違いが面白い話題です。",salesTalk:"今日、夏至ですね。日本では夏至にタコを食べる地域があって、北欧では夜通し踊るお祭りがあるらしいんですよ。同じ日でも文化が全然違うって面白くないですか？",tomorrowPreview:"明日はアイスにまつわる雑学"},
+  {date:"07-07",title:"七夕と天の川の本当の話",category:"雑学",fact:"7月7日の七夕は、実は旧暦での行事で、現在の暦では8月頃になります。織姫と彦星が年に一度会える日という伝説は中国の「乞巧奠（きっこうでん）」が起源で、裁縫や詩歌の技術上達を願う行事でした。",summary:"今日は七夕。伝説の本当の起源を話すと会話が弾む日です。",salesTalk:"七夕の短冊に願いを書く風習って、元々は中国で裁縫の上達を願ったものが起源らしいんですよ。日本ってうまく文化を取り込んで育てますよね。そういう柔軟さ、仕事でも大事だなと思って。",tomorrowPreview:"明日は暑さ対策にまつわる雑学"},
+  {date:"07-17",title:"漫画の日にちなんだ雑学",category:"記念日",fact:"7月17日は漫画の日です。日本の漫画市場は2023年に6000億円を超え、アニメや映画との連動で世界展開するコンテンツ産業の柱となっています。日本の漫画・アニメは国際的なクールジャパンの代表格です。",summary:"今日は漫画の日。日本のコンテンツ産業の規模と可能性を話すのに最適な日。",salesTalk:"日本の漫画市場って6000億円超えてるらしいんですよ。しかも海外でも人気が爆発してて。日本のコンテンツ力って改めてすごいなって思いますよね。",tomorrowPreview:"明日はアイスクリームの日にちなんだ話"},
+  {date:"07-20",title:"月の日にちなんだ話",category:"歴史",fact:"7月20日は人類が初めて月面に降り立ったアポロ11号の記念日（1969年）です。宇宙飛行士たちが着用した宇宙服の開発技術は、現代のスポーツウェアや断熱材などの技術に応用されています。",summary:"今日は月面着陸記念日。宇宙技術が身近な製品に応用されている話は盛り上がります。",salesTalk:"アポロ計画の宇宙服の技術って、実は今のスポーツウェアや断熱材に活かされてるらしいんですよ。一見関係なさそうな技術が繋がるって、イノベーションって面白いですよね。",tomorrowPreview:"明日は蝉にまつわる雑学"},
+  {date:"07-29",title:"アマチュア無線の日にちなんだ雑学",category:"記念日",fact:"7月29日はアマチュア無線の日です。無線通信技術は現代のWi-FiやBluetooth、スマートフォンの基盤となった技術の祖先にあたります。趣味の技術がテクノロジー産業を変えた代表的な例です。",summary:"今日は無線の日。趣味の技術が産業を変えた事例として話が広がりやすい日。",salesTalk:"アマチュア無線って、今のWi-FiやBluetoothの技術の先祖みたいな存在なんですよ。趣味で始めたことが世界を変えるって、夢がありますよね。仕事でも小さな試みから大きな変化が生まれることありますよね。",tomorrowPreview:"明日は夏の旬にまつわる雑学"},
+  {date:"08-03",title:"はちみつの日にちなんだ雑学",category:"記念日",fact:"8月3日は「ハチ（8）ミツ（3）」の語呂合わせではちみつの日です。はちみつは自然の保存食で、エジプトの古代遺跡で発見された3000年前のはちみつが今でも食べられる状態だったという記録があります。",summary:"今日ははちみつの日。3000年の保存力というエピソードが会話に使いやすい。",salesTalk:"はちみつって、エジプトの遺跡で3000年前のものが発掘されて、まだ食べられる状態だったらしいんですよ。本物の品質って時を超えますよね。そういう仕事をしたいなと思って。",tomorrowPreview:"明日は橋にまつわる雑学"},
+  {date:"08-10",title:"道の日にちなんだ雑学",category:"記念日",fact:"8月10日は道の日です。「道の駅」は1993年に制度化され、現在では全国に1200か所以上あります。地方創生の拠点として農産物直売や観光案内、地元グルメの提供など多機能化が進んでいます。",summary:"今日は道の日。道の駅を切り口に地方創生や地域ビジネスの話が広げやすい。",salesTalk:"道の駅って今、全国1200か所以上あって、地方の産業拠点になってるらしいんですよ。地元の強みを活かした商売って、シンプルですけど強いですよね。",tomorrowPreview:"明日は花火にまつわる雑学"},
+  {date:"08-15",title:"終戦記念日にちなんだ話",category:"歴史",fact:"8月15日は終戦記念日です。戦後の復興を経て、日本は「ものづくり大国」として高度経済成長を達成しました。その原動力となったのは、品質へのこだわりとチームワークを重んじる日本の職人文化でした。",summary:"今日は終戦記念日。復興からものづくりへ、日本の底力を話題にできる日です。",salesTalk:"終戦から80年、日本の復興ってほんとうに凄まじいですよね。ものづくりへのこだわりとチームワークで世界に追いついた。そういう底力を感じると、日々の仕事も丁寧にやろうと思えます。",tomorrowPreview:"明日は野菜にまつわる雑学"},
+  {date:"08-19",title:"俳句の日にちなんだ雑学",category:"記念日",fact:"8月19日は「ハイ（8）ク（9）」の語呂合わせから俳句の日とされています。俳句は世界最短の詩として知られ、英語圏でも「haiku」としてそのまま使われる世界共通の言葉になっています。",summary:"今日は俳句の日。日本文化の世界的な影響力を話題にしやすい日です。",salesTalk:"俳句って、英語でも『haiku』でそのまま通じるんですよね。短い言葉で世界を表現する日本の美意識、プレゼンや提案書にも通じるものがある気がして。",tomorrowPreview:"明日は暦にまつわる雑学"},
+  {date:"08-26",title:"レインボーブリッジ開通記念日",category:"記念日",fact:"8月26日は1993年にレインボーブリッジが開通した日です。東京港を跨ぐ全長798mのこの橋は、芝浦側と台場側を繋ぎ、東京の都市開発のシンボルとなりました。夜間のライトアップは観光名所としても有名です。",summary:"今日はレインボーブリッジ記念日。東京の都市開発とインフラ整備の話ができる日。",salesTalk:"レインボーブリッジって今年で30年以上経つんですよ。インフラって普段気にしないけど、社会を支える基盤ですよね。縁の下の力持ちって、仕事でも大事だなと改めて思います。",tomorrowPreview:"明日は映画にまつわる雑学"},
+  {date:"09-01",title:"防災の日にちなんだ雑学",category:"記念日",fact:"9月1日は防災の日です。1923年のこの日に関東大震災が発生したことにちなんでいます。現在では企業の「BCP（事業継続計画）」の重要性が見直され、災害時でもビジネスを続けるための準備が注目されています。",summary:"今日は防災の日。BCPや企業のリスク管理の話が自然にできる日です。",salesTalk:"防災の日って、企業のBCP、事業継続計画の見直し時期でもあるんですよね。いざというときの備えって、会社でも個人でも大事ですよね。最近、防災グッズとか見直しましたか？",tomorrowPreview:"明日はくるみの日にちなんだ話"},
+  {date:"09-09",title:"重陽の節句にちなんだ雑学",category:"歴史",fact:"9月9日は重陽の節句です。菊の花を飾り、菊酒を飲んで不老長寿を願う中国発祥の行事です。奇数が重なる日はめでたいとされ、1月1日・3月3日・5月5日・7月7日・9月9日が五節句として今に続きます。",summary:"今日は重陽の節句。日本の年中行事の体系を話すと奥深い会話になります。",salesTalk:"今日、重陽の節句って知ってましたか？菊の花で不老長寿を願う日なんですけど、日本の行事って奥が深いですよね。季節ごとに願い事がある文化って豊かだなと思って。",tomorrowPreview:"明日は弁当にまつわる雑学"},
+  {date:"09-15",title:"老人の日にちなんだ雑学",category:"記念日",fact:"9月15日は老人の日です。日本の100歳以上の高齢者の数は2023年に9万人を超え、世界最高水準の長寿大国です。長寿の秘訣として、食生活・コミュニティ・生きがいの3つが研究で注目されています。",summary:"今日は老人の日。日本の長寿文化と健康管理の話が広げやすい日です。",salesTalk:"日本って100歳以上の方が9万人超えてるって知ってましたか？長寿の秘訣が食事・コミュニティ・生きがいの3つらしくて。仕事も健康も、繋がりと目的が大事ですよね。",tomorrowPreview:"明日は天体にまつわる雑学"},
+  {date:"09-21",title:"世界アルツハイマーデーにちなんだ話",category:"記念日",fact:"9月21日は世界アルツハイマーデーです。日本では2025年の認知症施策推進基本法のもと、予防や地域社会での共生が注目されています。健康寿命を延ばす取り組みが医療・介護・テクノロジー分野で活発化しています。",summary:"今日は認知症啓発の日。健康と地域社会への関心が高まる日です。",salesTalk:"認知症対策って今、介護だけじゃなくてテクノロジーや地域コミュニティで解決しようっていう動きが面白くて。社会課題がビジネスチャンスになってる分野ですよね。",tomorrowPreview:"明日は秋の食材にまつわる雑学"},
+  {date:"09-29",title:"招き猫の日にちなんだ雑学",category:"記念日",fact:"9月29日は「来る（9）福（29）」の語呂合わせから招き猫の日とされています。招き猫は右手を上げると金運、左手を上げると客運を招くとされており、日本の縁起物として世界中に輸出されています。",summary:"今日は招き猫の日。日本の縁起物文化と海外人気の話が広がります。",salesTalk:"招き猫って、右手と左手で呼ぶものが違うって知ってましたか？右が金運で左が客運らしいんですよ。うちのお店にはどっちがいいかな、なんて考えると面白くて。",tomorrowPreview:"明日はコーヒーにまつわる雑学"},
+  {date:"10-01",title:"コーヒーの日にちなんだ雑学",category:"記念日",fact:"10月1日は国際コーヒーの日です。日本のコーヒー市場は年間7000億円を超え、世界有数のコーヒー消費大国です。最近はサードウェーブコーヒーと呼ばれる産地や精製方法にこだわる文化が若年層に広まっています。",summary:"今日はコーヒーの日。ビジネストークの掴みとして使いやすい身近な話題です。",salesTalk:"今日、コーヒーの日なんですよ。最近のコーヒーって産地や精製方法まで選ぶ時代になってて。お客様はコーヒー派ですか？こだわりって話が弾みますよね。",tomorrowPreview:"明日は豆腐にまつわる雑学"},
+  {date:"10-10",title:"目の愛護デーにちなんだ雑学",category:"記念日",fact:"10月10日は「10（ひとまる）10（ひとまる）」が目に見えることから目の愛護デーとされています。日本の子供の近視率は近年急上昇しており、スマートフォンの普及との関係が研究者の間で注目されています。",summary:"今日は目の愛護デー。デジタルデバイスと目の健康の話が使いやすい日です。",salesTalk:"今日、目の愛護デーで、最近の子どもの近視率がスマホ普及と連動して上がってるらしいんですよ。私も画面疲れするので、意識的に外を見るようにしてます。お互い気をつけましょう。",tomorrowPreview:"明日は鉄道にまつわる雑学"},
+  {date:"10-14",title:"鉄道の日にちなんだ雑学",category:"記念日",fact:"10月14日は鉄道の日です。1872年のこの日、新橋・横浜間で日本初の鉄道が開業しました。現在、日本の鉄道の遅延率は世界最低水準で、平均遅延時間は約1分以内という圧倒的な定時運行率を誇ります。",summary:"今日は鉄道の日。日本の定時運行技術の話は海外とのビジネスで話題になります。",salesTalk:"日本の鉄道って平均遅延が1分以内らしいんですよ。海外では数時間遅れが普通のところも多くて。日本の几帳面さって、世界に誇れる強みですよね。",tomorrowPreview:"明日は味噌にまつわる雑学"},
+  {date:"10-20",title:"リサイクルの日にちなんだ雑学",category:"記念日",fact:"10月20日はリサイクルの日です。日本のリサイクル率はペットボトルで約85%と世界トップ水準です。近年はリユース・アップサイクルという発想で不要品をさらに価値の高いものに変えるビジネスも急成長しています。",summary:"今日はリサイクルの日。環境とビジネスを繋ぐサステナビリティの話ができる日。",salesTalk:"日本のペットボトルのリサイクル率って85%で世界トップらしいんですよ。最近はアップサイクルって使い古したものを価値あるものに変えるビジネスも面白くて。御社でもSDGsの取り組みって何かされてますか？",tomorrowPreview:"明日は読書の秋にちなんだ話題"},
+  {date:"10-27",title:"読書週間にちなんだ雑学",category:"記念日",fact:"10月27日から始まる読書週間は、1924年に「図書館デー」として始まり、現在は2週間の啓発イベントとなっています。読書量と年収の相関を示す研究もあり、ビジネスパーソンへの読書習慣の啓発が盛んです。",summary:"今日は読書週間のスタート。読書習慣と仕事の関係を話題にできる日です。",salesTalk:"読書量と年収に相関があるって研究があるんですよ。私も最近、意識的に読むようにしてるんですが、お客様は最近何か読まれましたか？おすすめあれば教えてほしいです。",tomorrowPreview:"明日は写真にまつわる雑学"},
+  {date:"11-01",title:"本格焼酎の日にちなんだ雑学",category:"記念日",fact:"11月1日は本格焼酎の日です。本格焼酎は麦・芋・米などを原料にした日本の伝統蒸留酒で、近年は健康志向やクラフト飲料ブームで若年層への人気が復活しつつあります。海外での日本酒ブームと並んで注目です。",summary:"今日は焼酎の日。日本の伝統酒と食文化が話題に出しやすい日です。",salesTalk:"本格焼酎って最近、クラフト感やヘルシーイメージで若い人にも人気が戻ってきてるみたいで。日本のお酒って、海外でも注目されてますよね。接待とかで日本酒や焼酎の話、最近よく出ませんか？",tomorrowPreview:"明日は洋服にまつわる雑学"},
+  {date:"11-11",title:"麺の日にちなんだ雑学",category:"記念日",fact:"11月11日は1が4本並ぶことから麺の日とされています。日本のラーメン市場は年間6000億円を超える大産業です。博多・札幌・喜多方・尾道など、各地のご当地ラーメンは地域の観光資源にもなっています。",summary:"今日は麺の日。ラーメン文化と地域ブランドの話が弾みやすい日です。",salesTalk:"ラーメン市場って年間6000億円超えてるらしいんですよ。しかも各地のご当地ラーメンが観光資源にもなってて。お客様のお気に入りのラーメンってどのタイプですか？",tomorrowPreview:"明日は和紙にまつわる雑学"},
+  {date:"11-20",title:"産業カウンセラーの日にちなんだ話",category:"記念日",fact:"11月20日は産業カウンセラーの日です。近年、メンタルヘルス対策は企業の重要課題となっており、ストレスチェック制度の義務化（50人以上の企業）や、EAP（従業員支援プログラム）の導入が急速に広まっています。",summary:"今日は産業カウンセラーの日。職場のメンタルヘルスが話題にしやすい日です。",salesTalk:"最近、職場のメンタルヘルス対策って企業の重要課題になってますよね。ストレスチェック義務化以降、社員の健康を経営課題として取り組む会社が増えてる印象です。御社はいかがですか？",tomorrowPreview:"明日は紅葉にまつわる雑学"},
+  {date:"11-23",title:"勤労感謝の日にちなんだ雑学",category:"記念日",fact:"11月23日の勤労感謝の日は、もともと新嘗祭という五穀豊穣を神に感謝する宮中行事が起源です。戦後に「勤労をたっとび、生産を祝い、国民がたがいに感謝しあう」という意味を持つ祝日として制定されました。",summary:"今日は勤労感謝の日。仕事への感謝と日本の農耕文化の根底を話すのに最適な日。",salesTalk:"勤労感謝の日って、もともとは収穫を神様に感謝する新嘗祭が起源らしいんですよ。働くことへの感謝って、原点に帰ると深いですよね。今日はお客様に感謝を伝えたくて、連絡しました。",tomorrowPreview:"明日はクリスマスの準備にちなんだ話"},
+  {date:"12-01",title:"世界エイズデーにちなんだ話",category:"記念日",fact:"12月1日は世界エイズデーです。医療の進化でHIVは「管理可能な慢性疾患」になりつつあり、感染者数は世界的に減少傾向にあります。啓発活動の継続が予防と差別解消に重要な役割を果たしています。",summary:"今日は世界エイズデー。医療の進歩と社会啓発の重要性を話せる日です。",salesTalk:"医療って本当に進歩してますよね。かつての不治の病が管理できるようになってきて。技術と知識の積み重ねが社会を変える、企業の継続的な改善活動も同じだなと思って。",tomorrowPreview:"明日は師走の語源にまつわる話題"},
+  {date:"12-10",title:"ノーベル賞の授賞式の日",category:"歴史",fact:"12月10日はアルフレッド・ノーベルの命日で、この日に毎年授賞式が行われます。日本のノーベル賞受賞者は自然科学分野だけで29人（2023年時点）以上おり、独創的な研究を続ける日本の研究力を世界に示しています。",summary:"今日はノーベル賞授賞式の日。日本の研究力と世界への貢献を話せる日です。",salesTalk:"今日、ノーベル賞授賞式なんですよ。日本人受賞者って自然科学分野だけで29人以上いて世界トップクラスらしいんですよ。地道な基礎研究が世界を変える、仕事でも同じですよね。",tomorrowPreview:"明日は年末の風物詩にちなんだ話"},
+  {date:"12-22",title:"冬至にちなんだ雑学",category:"雑学",fact:"12月22日頃の冬至は、一年で最も夜が長い日です。この日に柚子湯に入る風習は、「融通（ゆうずう）が利く」との語呂合わせや、柚子の香りで邪気を払うという考え方から来ているとされています。",summary:"今日は冬至。柚子湯の由来を話すと季節感が伝わる会話になります。",salesTalk:"今日、冬至で柚子湯の日ですね。語呂合わせで「融通が利く」って縁起を担ぐの、日本らしいですよね。今年最後の商談、融通を利かせてうまく進めたいものです、なんて。",tomorrowPreview:"明日は年越しにちなんだ話題"},
+  {date:"12-25",title:"クリスマスの本当の起源",category:"歴史",fact:"12月25日のクリスマスは、キリストの誕生日とされていますが、実際の誕生日は不明です。この日が選ばれたのは、古代ローマの冬至祭「ソルインウィクタス」に合わせたとも言われています。",summary:"今日はクリスマス。意外と知られない起源の話で会話が盛り上がります。",salesTalk:"クリスマスって実はキリストの誕生日じゃないかもって話、知ってましたか？古代ローマの冬至祭が起源の一説があって。歴史って面白いですよね。今年もお世話になりました。",tomorrowPreview:"明日は大晦日にちなんだ話題"},
+  {date:"12-31",title:"大晦日の年越しそばの由来",category:"雑学",fact:"12月31日の大晦日に食べる年越しそばは、細く長いそばにあやかって「長寿」や「縁が長く続く」を願う風習です。また、そばが切れやすいことから「今年の厄を断ち切る」という意味もあるといわれています。",summary:"今日は大晦日。年越しそばの由来を話すと新年への橋渡しになる話題です。",salesTalk:"年越しそば、今年食べましたか？長寿を願うと同時に、厄を断ち切る意味もあるらしくて。今年もお世話になりました。来年もどうぞよろしくお願いいたします。",tomorrowPreview:"明日は新年、元日にちなんだ話題"},
+  {date:"01-01",title:"元日と初詣の雑学",category:"記念日",fact:"1月1日の初詣は日本全国で行われる新年の風習で、全国の参拝者数は三が日だけで約9000万人以上に達します。伊勢神宮・明治神宮・成田山新勝寺が毎年参拝者数トップ3に入ることが多いです。",summary:"今日は元日。初詣文化の規模と定番スポットを話すと面白い話題になります。",salesTalk:"初詣、行きましたか？日本全体で三が日だけで9000万人以上が参拝するって、改めてすごい規模ですよね。今年の抱負とか、何か決めましたか？",tomorrowPreview:"明日は正月料理にちなんだ話題"},
+  {date:"05-01",title:"メーデーにちなんだ雑学",category:"歴史",fact:"5月1日はメーデーで、労働者の権利向上を訴える国際的な記念日です。日本でも明治時代末期から行われており、今日では働き方改革やリモートワーク推進など、労働環境の変化が続いています。",summary:"今日はメーデー。働き方改革やワークライフバランスを話題にしやすい日です。",salesTalk:"メーデーって働き方について考える日でもあるんですよね。リモートワークや働き方改革で、仕事の進め方って本当に変わりましたよね。御社でも変化を感じることはありますか？",tomorrowPreview:"明日はこどもの日にちなんだ話"},
+  {date:"06-15",title:"暑中見舞いの日にちなんだ雑学",category:"記念日",fact:"6月15日頃からお中元・暑中見舞いの季節が始まります。日本のギフト市場は年間約3兆円規模で、お中元・お歳暮という贈答文化はビジネスシーンでも重要な関係構築のツールとして続いています。",summary:"今日はお中元シーズンの始まり。贈答文化と関係構築の話が広げやすい日。",salesTalk:"お中元の季節ですね。日本のギフト市場って3兆円規模らしくて。贈り物って関係を深める日本独自の文化ですよね。今年も何かお気持ちをお伝えできればと思っています。",tomorrowPreview:"明日は夏の風物詩にちなんだ話題"},
+  {date:"09-10",title:"下水道の日にちなんだ雑学",category:"記念日",fact:"9月10日は下水道の日です。実は日本の下水道処理技術は世界最高水準の一つで、東京の地下には「地下神殿」と呼ばれる巨大な調整池があります。洪水を防ぐこのインフラは見学ツアーも開催されています。",summary:"今日は下水道の日。見えないインフラの凄さを話すと意外性で盛り上がります。",salesTalk:"東京の地下に『地下神殿』って呼ばれる洪水対策の巨大施設があるって知ってましたか？見えないところで社会を支えるインフラって、縁の下の力持ちで、仕事でも大切にしたい姿勢ですよね。",tomorrowPreview:"明日は重陽の節句にちなんだ話"},
+  {date:"10-31",title:"ハロウィンの本当の起源",category:"歴史",fact:"10月31日のハロウィンは、古代ケルト人の「サウィン祭」が起源とされています。死者の霊が戻ってくる夜に仮装して悪霊を追い払った風習が、キリスト教文化と融合してアメリカで発展しました。",summary:"今日はハロウィン。意外な起源の話は会話のきっかけとして使いやすいです。",salesTalk:"ハロウィンって古代ケルトの厄払い行事が起源らしくて、アメリカ経由で世界に広まったんですよ。日本でもここ30年でこんなに定着するとは思わなかったですよね。文化の広がり方って面白い。",tomorrowPreview:"明日は本格焼酎の日にちなんだ話"},
+  {date:"11-03",title:"文化の日にちなんだ雑学",category:"記念日",fact:"11月3日は文化の日です。この日は晴れの特異日として知られており、統計的に晴れる確率が高い日です。文化勲章の授与式もこの日に行われ、芸術・学術・スポーツ分野の功績が表彰されます。",summary:"今日は文化の日。統計的に晴れやすいという豆知識が話しやすい日です。",salesTalk:"今日、文化の日って統計的に晴れの確率が高い日らしいんですよ。確かに秋晴れって多いですよね。こういうデータって、どこかで使えそうで面白いですよね。",tomorrowPreview:"明日は立冬にちなんだ話題"},
+  {date:"04-02",title:"国際子どもの本の日にちなんだ雑学",category:"記念日",fact:"4月2日はデンマーク生まれのアンデルセンの誕生日にちなみ、国際子どもの本の日とされています。「人魚姫」や「みにくいアヒルの子」など、アンデルセンの童話は190以上の言語に翻訳されています。",summary:"今日はアンデルセンの誕生日。本や翻訳文化の話を広げやすい日です。",salesTalk:"アンデルセンの童話って190以上の言語に翻訳されてるんですよ。物語の普遍性って言語を超えますよね。伝わるメッセージって、シンプルで本質的なものが強いなと改めて思います。",tomorrowPreview:"明日はエイプリルフールの起源にちなんだ話"},
+  {date:"07-01",title:"銀行の日にちなんだ雑学",category:"記念日",fact:"7月1日は銀行の日です。1873年にこの日、日本で初の国立銀行条例が施行されました。現在、フィンテックの普及でキャッシュレス比率が急上昇しており、日本でも2023年に決済の39%がキャッシュレスになっています。",summary:"今日は銀行の日。フィンテックやキャッシュレス化の話が使いやすい日です。",salesTalk:"今日、銀行の日なんですが、キャッシュレス比率が日本でも39%を超えたらしいんですよ。お客様のところでもキャッシュレス化で業務が変わってきてますか？",tomorrowPreview:"明日は七夕にちなんだ話題"},
+  {date:"08-01",title:"水の日にちなんだ雑学",category:"記念日",fact:"8月1日は水の日です。日本の水道水は世界的に最高水準の安全性を誇り、そのまま飲める国は世界の約13カ国のみとされています。水資源の大切さとともに、日本の水技術は海外でも高く評価されています。",summary:"今日は水の日。日本の水道インフラの世界水準を話す雑学が使いやすい日。",salesTalk:"日本の水道水ってそのまま飲める数少ない国の一つらしいんですよ。当たり前に思ってますが、世界的には凄いことで。普段気づかない強みって、仕事にもありますよね。",tomorrowPreview:"明日ははちみつの日にちなんだ話"},
+  {date:"11-15",title:"七五三にちなんだ雑学",category:"記念日",fact:"11月15日は七五三の日です。3歳・5歳・7歳のお祝いをする日本独自の風習で、千歳飴を引っ張って伸ばすことで長寿を願います。千歳飴の「千歳」は「千年」という意味で、子供の長寿への願いが込められています。",summary:"今日は七五三の日。子育て世代と話しやすい日本の伝統行事の日です。",salesTalk:"七五三って、千歳飴を長く伸ばして長寿を願うんですよね。子供の成長を祝う風習って日本独自で、改めていいなと思います。お客様のところにお子さんはいらっしゃいますか？",tomorrowPreview:"明日は本格焼酎にちなんだ雑学"},
+  {date:"04-22",title:"アースデーにちなんだ雑学",category:"記念日",fact:"4月22日はアースデーです。1970年にアメリカで始まったこの日は、現在190カ国以上で環境保護を考えるイベントが行われています。日本企業でもSDGsの取り組みが評価指標となり、ESG投資の注目が高まっています。",summary:"今日はアースデー。環境とビジネスを繋ぐESGの話が広がりやすい日です。",salesTalk:"今日、アースデーなんですよ。最近はESG投資やサステナビリティって企業評価の指標になってますよね。御社でも環境への取り組みって何か新しいことされてますか？",tomorrowPreview:"明日は子どもの本の日にちなんだ話"},
+  {date:"02-11",title:"建国記念の日にちなんだ雑学",category:"歴史",fact:"2月11日は建国記念の日です。古事記・日本書紀に記された神武天皇の即位伝承にちなみ、日本の建国を祝う日とされています。日本は世界でも最も古い王朝が続く国の一つとして知られています。",summary:"今日は建国記念の日。日本の長い歴史と文化の継続性を話す日です。",salesTalk:"今日、建国記念の日なんですよ。日本って世界最古クラスの王朝が続く国って言われてて、それだけ安定した文化の基盤があるんですよね。長く続くものの強さって、仕事でも大切なことですよね。",tomorrowPreview:"明日はバレンタインにまつわる雑学"},
+];
+
+// ===== STATE =====
+let currentOffset = 0;
+let favorites = JSON.parse(localStorage.getItem('netacho_favs') || '[]');
+
+// ===== UTILS =====
+function getDateKey(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  const mm = String(d.getMonth() + 1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return `${mm}-${dd}`;
+}
+
+function getDateForOffset(offset) {
+  const d = new Date();
+  d.setDate(d.getDate() + offset);
+  return d;
+}
+
+function formatDateLabel(offset) {
+  const d = getDateForOffset(offset);
+  const y = d.getFullYear();
+  const m = d.getMonth() + 1;
+  const day = d.getDate();
+  return `${m}月${day}日`;
+}
+
+function getDayOfWeek(offset) {
+  const days = ['日','月','火','水','木','金','土'];
+  const d = getDateForOffset(offset);
+  return `${d.getFullYear()}年 ${days[d.getDay()]}曜日`;
+}
+
+function getCategoryClass(cat) {
+  const m = {記念日:'cat-kinenbi',歴史:'cat-rekishi',雑学:'cat-zatugaku','ニュース風':'cat-news'};
+  return m[cat] || 'cat-zatugaku';
+}
+
+function getDataForOffset(offset) {
+  const key = getDateKey(offset);
+  return DATA.find(d => d.date === key) || DATA[Math.abs(offset) % DATA.length];
+}
+
+// ===== RENDER =====
+function render() {
+  const item = getDataForOffset(currentOffset);
+  const tomorrow = getDataForOffset(currentOffset + 1);
+
+  document.getElementById('displayDate').textContent = formatDateLabel(currentOffset);
+  document.getElementById('displayDateSub').textContent = getDayOfWeek(currentOffset);
+
+  const todayWrap = document.getElementById('todayBadgeWrap');
+  todayWrap.innerHTML = currentOffset === 0 ? '<span class="today-badge">TODAY</span>' : '';
+
+  const catClass = getCategoryClass(item.category);
+  document.getElementById('categoryBadge').textContent = item.category;
+  document.getElementById('categoryBadge').className = `category-badge ${catClass}`;
+  document.getElementById('cardTitle').textContent = item.title;
+  document.getElementById('factText').textContent = item.fact;
+  document.getElementById('summaryText').textContent = item.summary;
+  document.getElementById('salesTalkText').textContent = item.salesTalk;
+  document.getElementById('tomorrowPreview').textContent = tomorrow ? tomorrow.tomorrowPreview || tomorrow.title : '明日のネタは準備中です';
+
+  // Update copy btn
+  const copyBtn = document.getElementById('copyBtn');
+  copyBtn.textContent = 'コピー';
+  copyBtn.classList.remove('copied');
+
+  // Update fav button
+  updateFavBtn();
+}
+
+function updateFavBtn() {
+  const key = getDateKey(currentOffset);
+  const isSaved = favorites.some(f => f.date === key);
+  const btn = document.getElementById('favBtn');
+  const icon = btn.querySelector('.fav-icon');
+  const label = document.getElementById('favBtnLabel');
+  if (isSaved) {
+    btn.classList.add('saved');
+    icon.textContent = '★';
+    label.textContent = 'ストック済み';
+  } else {
+    btn.classList.remove('saved');
+    icon.textContent = '☆';
+    label.textContent = 'ストックする';
+  }
+}
+
+// ===== ACTIONS =====
+function changeDay(dir) {
+  currentOffset += dir;
+  render();
+}
+
+function copyTalk() {
+  const text = document.getElementById('salesTalkText').textContent;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.textContent = 'コピーしました';
+      btn.classList.add('copied');
+      showToast('トークをコピーしました ✓');
+      setTimeout(() => { btn.textContent = 'コピー'; btn.classList.remove('copied'); }, 2000);
+    });
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showToast('コピーしました ✓');
+  }
+}
+
+function toggleFavorite() {
+  const key = getDateKey(currentOffset);
+  const item = getDataForOffset(currentOffset);
+  const idx = favorites.findIndex(f => f.date === key);
+  if (idx >= 0) {
+    favorites.splice(idx, 1);
+    showToast('ストックから削除しました');
+  } else {
+    favorites.unshift({ ...item, savedKey: key });
+    showToast('ストックしました ⭐');
+  }
+  localStorage.setItem('netacho_favs', JSON.stringify(favorites));
+  updateFavBtn();
+  renderFavorites();
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// ===== FAVORITES =====
+function renderFavorites() {
+  const list = document.getElementById('favList');
+  const badge = document.getElementById('favCountBadge');
+  if (favorites.length === 0) {
+    badge.style.display = 'none';
+    list.innerHTML = `<div class="fav-empty"><div class="fav-empty-icon">⭐</div><div class="fav-empty-text">まだストックがありません。<br>気になった雑学を保存しよう。</div></div>`;
+    return;
+  }
+  badge.style.display = 'inline-flex';
+  badge.textContent = favorites.length;
+  list.innerHTML = favorites.map((item, i) => `
+    <div class="fav-item" onclick="openModal(${i})">
+      <div class="fav-item-row">
+        <div style="flex:1">
+          <div class="fav-item-date">${item.date ? item.date.replace('-','月').replace(/(\d+)$/,'$1日') : ''} ｜ ${item.category}</div>
+          <div class="fav-item-title">${item.title}</div>
+          <div class="fav-item-summary">${item.summary}</div>
+        </div>
+        <button class="fav-delete-btn" onclick="deleteFav(event,${i})">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteFav(e, i) {
+  e.stopPropagation();
+  favorites.splice(i, 1);
+  localStorage.setItem('netacho_favs', JSON.stringify(favorites));
+  renderFavorites();
+  updateFavBtn();
+  showToast('削除しました');
+}
+
+function openModal(i) {
+  const item = favorites[i];
+  const catClass = getCategoryClass(item.category);
+  document.getElementById('modalCat').textContent = item.category;
+  document.getElementById('modalCat').className = `category-badge ${catClass}`;
+  document.getElementById('modalDate').textContent = item.date ? item.date.replace('-','月').replace(/(\d+)$/,'$1日') : '';
+  document.getElementById('modalTitle').textContent = item.title;
+  document.getElementById('modalFact').textContent = item.fact;
+  document.getElementById('modalSummary').textContent = item.summary;
+  document.getElementById('modalTalk').textContent = item.salesTalk;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modalOverlay') || !document.querySelector('.modal-sheet').contains(e.target)) {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+}
+
+// ===== TABS =====
+function switchTab(tab) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`screen-${tab}`).classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => {
+    if (b.textContent.includes(tab === 'home' ? '今日' : 'ストック')) b.classList.add('active');
+  });
+  document.getElementById(`nav-${tab}`).classList.add('active');
+  if (tab === 'favorites') renderFavorites();
+}
+
+// ===== INIT =====
+render();
+renderFavorites();
+</script>
+</body>
+</html>
+
